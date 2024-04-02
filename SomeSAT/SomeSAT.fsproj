@@ -6,7 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Program.fs"/>
+        <Compile Include="DIMACSReader.fs" />
+        <Compile Include="Main.fs" />
     </ItemGroup>
 
 </Project>
