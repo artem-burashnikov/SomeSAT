@@ -6,7 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Definitions.fs" />
         <Compile Include="DIMACSReader.fs" />
+        <Compile Include="DPLL.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
 

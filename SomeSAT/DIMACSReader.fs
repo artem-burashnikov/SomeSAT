@@ -2,9 +2,7 @@ module SomeSAT.DIMACSReader
 
 open System.IO
 
-type Literal<'T> =
-    | Positive of 'T
-    | Negative of 'T
+open Definitions
 
 // DIMACS File reader.
 let read filePath =
