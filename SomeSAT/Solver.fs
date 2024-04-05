@@ -7,8 +7,15 @@ type TypedLiteral =
     | PureNegative
     | Mixed
     | Unresolved
-    static tryFindPure arr =
+
+let tryFindPureLiteral arr =
+    let maybeIndex =
         Array.tryFindIndex (fun elem -> elem = PurePositive || elem = PureNegative) arr
+
+    match maybeIndex with
+    | Some i when arr[i] = PurePositive -> Some(Positive(i + 1))
+    | Some i when arr[i] = PureNegative -> Some(Negative(i + 1))
+    | _ -> None
 
 let neg =
     function
@@ -17,7 +24,7 @@ let neg =
 
 let propagate unitLiteral cnfData =
     let negUnitLiteral = neg unitLiteral
-    
+
     let folder =
         fun (state: Set<Set<_>>) (clause: Set<_>) ->
             if clause.Contains(unitLiteral) then
@@ -26,7 +33,7 @@ let propagate unitLiteral cnfData =
                 state.Add(clause.Remove negUnitLiteral)
             else
                 state.Add(clause)
-                
+
     Set.fold folder Set.empty cnfData
 
 let purify pureLiteral cnfData =
@@ -36,7 +43,7 @@ let purify pureLiteral cnfData =
                 state
             else
                 state.Add(clause)
-                
+
     Set.fold folder Set.empty cnfData
 
 let tryFindMap (cnf: CNF) =
@@ -55,17 +62,17 @@ let tryFindMap (cnf: CNF) =
                 | Unresolved -> state[n - 1] <- PureNegative
                 | PurePositive
                 | Mixed -> state[n - 1] <- Mixed
-            
+
             state
-    
+
     let outerFolder =
-        fun (state: Option<Literal> * array<TypedLiteral>)  (clause: Set<Literal>) ->
+        fun (state: Option<Literal> * array<TypedLiteral>) (clause: Set<Literal>) ->
             let unitLiteral =
                 match clause.Count with
                 | cnt when cnt = 1 -> clause |> Set.toSeq |> Seq.tryHead
                 | _ -> fst state
-                
+
             unitLiteral, Set.fold innerFolder (snd state) clause
-    
+
     let typedVarsArray: array<TypedLiteral> = Array.create cnf.Variables Unresolved
     Set.fold outerFolder (None, typedVarsArray) cnf.Data
