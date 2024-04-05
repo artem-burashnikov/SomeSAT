@@ -2,28 +2,18 @@ module SomeSAT.DIMACSReader
 
 open System.IO
 
-open Definitions
+type DIMACSFile(filePath: string) =
+    let allLines = File.ReadLines filePath
+    let noCommentsLines = Seq.skipWhile (fun (n: string) -> n[0] = 'c') allLines
 
-// DIMACS File reader.
-let read filePath =
-    let lineIsValidClause =
-        fun (ch: string) ->
-            (ch.Length > 0)
-            && (ch[0] <> 'c')
-            && (ch[0] <> 'p')
-            && (ch[0] <> '%')
-            && (ch[0] <> '0')
+    let header =
+        (Seq.head noCommentsLines)
+            .Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
 
-    // Skip all comments and header, store only data.
-    let data = filePath |> File.ReadLines |> Seq.filter lineIsValidClause
+    let variables = int header[2]
+    let clauses = int header[3]
+    let data = Seq.tail noCommentsLines
 
-    // Map to internal data structure.
-    let mapping (line: string) =
-        line.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
-        |> Array.takeWhile (fun numStr -> numStr <> "0")
-        |> Array.map (fun numStr ->
-            let l = int numStr
-            if l > 0 then Positive l else Negative -l)
-        |> Set.ofArray
-
-    Seq.map mapping data |> Set.ofSeq
+    member this.Variables = variables
+    member this.Clauses = clauses
+    member this.Data = data

@@ -1,24 +1,15 @@
-module SomeSAT.DPLL
-
-open Definitions
-
-let neg =
-    function
-    | Positive l -> Negative l
-    | Negative l -> Positive l
+module SomeSAT.Solver
 
 let propagate unitLiteral cnf =
-    let negUnitLiteral = neg unitLiteral
-    let unitClause = Set.empty.Add(unitLiteral)
-    let negUnitClause = Set.empty.Add(negUnitLiteral)
+    let negUnitLiteral = -unitLiteral
     
     let folder =
         fun (state: Set<Set<_>>) (clause: Set<_>) ->
             // Eliminate true clauses.
-            if (unitClause = clause) || (unitClause.IsSubsetOf clause) then
+            if clause.Contains(unitLiteral) then
                 state
             // Remove not(unitLiteral) from clauses.
-            elif (negUnitClause.IsSubsetOf clause) then
+            elif clause.Contains(negUnitLiteral) then
                 state.Add(clause.Remove negUnitLiteral)
             // Otherwise accumulate.
             else
