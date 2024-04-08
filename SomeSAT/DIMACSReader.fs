@@ -3,12 +3,16 @@ module SomeSAT.DIMACSReader
 open System.IO
 
 type DIMACSFile(filePath: string) =
-    let allLines = File.ReadLines filePath
-    let noCommentsLines = Seq.skipWhile (fun (n: string) -> n[0] = 'c') allLines
+    let splitOptions =
+        System.StringSplitOptions.RemoveEmptyEntries
+        + System.StringSplitOptions.TrimEntries
 
-    let header =
-        (Seq.head noCommentsLines)
-            .Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+    let allLines = File.ReadLines filePath
+
+    let noCommentsLines =
+        Seq.filter (fun (n: string) -> n[0] = 'c' || n[0] = '%') allLines
+
+    let header = (Seq.head noCommentsLines).Split(' ', splitOptions)
 
     let variables = int header[2]
     let clauses = int header[3]
