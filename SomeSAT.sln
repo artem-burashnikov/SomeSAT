@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SomeSAT", "SomeSAT\SomeSAT.fsproj", "{60308744-C9DF-4A97-A415-09C38365687B}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SomeSAT.Tests", "SomeSAT.Tests\SomeSAT.Tests.fsproj", "{B3B270C6-BB29-4DCE-BFF4-B6BEA906B7C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{60308744-C9DF-4A97-A415-09C38365687B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60308744-C9DF-4A97-A415-09C38365687B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60308744-C9DF-4A97-A415-09C38365687B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3B270C6-BB29-4DCE-BFF4-B6BEA906B7C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3B270C6-BB29-4DCE-BFF4-B6BEA906B7C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3B270C6-BB29-4DCE-BFF4-B6BEA906B7C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3B270C6-BB29-4DCE-BFF4-B6BEA906B7C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
