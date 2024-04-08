@@ -16,6 +16,6 @@ module Main =
             let model = dpll cnf
             watch.Stop()
             printModel model
-            printfn $"%A{watch.Elapsed.TotalMilliseconds}"
+            printfn $"Total elapsed time: %.3f{watch.Elapsed.TotalMilliseconds} ms"
 
         0
