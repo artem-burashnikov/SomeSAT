@@ -7,16 +7,20 @@ type Literal =
     | Negative of int
 
 type CNF(file: DIMACSFile) =
+    let splitOptions =
+        System.StringSplitOptions.RemoveEmptyEntries
+        + System.StringSplitOptions.TrimEntries
+
     let cnf =
         let mapping (line: string) =
-            line.Split(' ', System.StringSplitOptions.RemoveEmptyEntries)
+            line.Split(' ', splitOptions)
             |> Array.takeWhile (fun numStr -> numStr <> "0")
             |> Array.map (fun numStr ->
                 let l = int numStr
                 if l > 0 then Positive l else Negative -l)
             |> Set.ofArray
 
-        Seq.map mapping file.Data |> Set.ofSeq
+        Seq.map mapping file.Data |> List.ofSeq
 
     member this.Variables = file.Variables
     member this.Clauses = file.Clauses
