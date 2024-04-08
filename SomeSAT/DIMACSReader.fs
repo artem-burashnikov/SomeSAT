@@ -10,7 +10,7 @@ type DIMACSFile(filePath: string) =
     let allLines = File.ReadLines filePath
 
     let noCommentsLines =
-        Seq.filter (fun (n: string) -> n[0] = 'c' || n[0] = '%') allLines
+        Seq.filter (fun (n: string) -> n[0] <> 'c' && n[0] <> '%') allLines
 
     let header = (Seq.head noCommentsLines).Split(' ', splitOptions)
 
