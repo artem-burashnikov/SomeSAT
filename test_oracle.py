@@ -59,26 +59,26 @@ def test_with_oracle(in_file: Path) -> None:
 
             if picosat.stdout.strip() == UNSAT:
                 print(f"{in_file.name}: {Bcolors.OKGREEN}PASSED{Bcolors.ENDC}")
-                sys.exit(0)
             else:
                 print(f"{in_file.name}: {Bcolors.FAIL}FAILED{Bcolors.ENDC}")
                 sys.exit(1)
         else:
-            model = tmp.readlines()[1:]
+            model = tmp.readlines()
             additional_clauses = count_vars(model)
 
-            with open(file_path, "r") as src, tempfile.NamedTemporaryFile(mode="w+") as buff:
+            with open(file_path, "r") as src, tempfile.NamedTemporaryFile(
+                mode="w+"
+            ) as buff:
                 for src_line in src:
-                    if src_line.startswith("c"):
+                    if src_line.startswith("c") or src_line.startswith("s"):
                         continue
                     if src_line.startswith("p"):
                         ltw = src_line.strip().split()
-                        ltw[2] = str(int(ltw[2]) + additional_clauses)
+                        ltw[3] = str(int(ltw[3]) + additional_clauses)
                         buff.write(" ".join(ltw))
                         buff.write("\n")
                     else:
                         buff.write(src_line)
-                        
 
                 for ans_line in model:
                     if ans_line.startswith("v"):
@@ -100,10 +100,7 @@ def test_with_oracle(in_file: Path) -> None:
                 )
 
                 if picosat.stdout.split("\n")[0].strip() == SAT:
-                    print(
-                        f"{in_file.name}: {Bcolors.OKGREEN}PASSED{Bcolors.ENDC}"
-                    )
-                    sys.exit(0)
+                    print(f"{in_file.name}: {Bcolors.OKGREEN}PASSED{Bcolors.ENDC}")
                 else:
                     print(f"{in_file.name}: {Bcolors.FAIL}FAILED{Bcolors.ENDC}")
                     sys.exit(1)
@@ -114,3 +111,4 @@ if __name__ == "__main__":
         print("Usage: python3 test.py <filePath>")
         sys.exit(1)
     test_with_oracle(sys.argv[1])
+    sys.exit(0)
