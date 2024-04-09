@@ -1,96 +1,120 @@
 module SomeSAT.Solver
 
-open CNF
+open System.IO
 
-let tryFindUnitLiteral cnfData =
+type Literal =
+    | Positive of int
+    | Negative of int
+
+    static member (~-) literal =
+        match literal with
+        | Positive l -> Negative l
+        | Negative l -> Positive l
+
+type CNF(filePath: string) =
+    let splitOptions =
+        System.StringSplitOptions.RemoveEmptyEntries
+        + System.StringSplitOptions.TrimEntries
+
+    let headerDataLines =
+        File.ReadLines filePath
+        |> Seq.filter (fun (n: string) -> n[0] <> 'c' && n[0] <> '%')
+
+    let header = (Seq.head headerDataLines).Split(' ', splitOptions)
+
+    let cnf =
+        let fMap (line: string) =
+            line.Split(' ', splitOptions)
+            |> Array.takeWhile (fun numStr -> numStr <> "0")
+            |> Array.map (fun numStr ->
+                let l = int numStr
+                if l > 0 then Positive l else Negative -l)
+            |> List.ofArray
+
+        Seq.map fMap (Seq.tail headerDataLines) |> List.ofSeq
+
+    member this.Variables = int header[2]
+    member this.Clauses = int header[3]
+    member this.Data = cnf
+
+let tryFindUnitLiteral cnf =
     Seq.tryPick
         (function
         | [ x ] -> Some x
         | _ -> None)
-        cnfData
+        cnf
 
-let isPure cnfData (literal: Literal) =
-    if Seq.forall (Seq.forall ((<>) -literal)) cnfData then
+let isPure cnf (literal: Literal) =
+    if Seq.forall (Seq.forall ((<>) -literal)) cnf then
         Some literal
     else
         None
 
-let tryFindPureLiteral cnfData =
-    Seq.concat cnfData |> Seq.distinct |> Seq.tryPick (isPure cnfData)
+let tryFindPureLiteral cnf =
+    Seq.concat cnf |> Seq.distinct |> Seq.tryPick (isPure cnf)
 
-let resolveUnit cnfData literal =
-    List.choose
-        (fun clause ->
-            if Seq.exists ((=) literal) clause then
-                None
-            else
-                Some(List.filter ((<>) -literal) clause))
-        cnfData
+let chooseUnit literal clause =
+    if Seq.exists ((=) literal) clause then
+        None
+    else
+        Some(List.filter ((<>) -literal) clause)
 
-let propagate cnfData model =
-    let rec inner cnfData model =
-        match tryFindUnitLiteral cnfData with
-        | Some literal ->
-            let cnfData' = resolveUnit cnfData literal
-            inner cnfData' (literal :: model)
-        | None -> cnfData, model
+let choosePure literal clause =
+    if Seq.exists ((=) literal) clause then
+        None
+    else
+        Some(clause)
 
-    inner cnfData model
+let resolve cnf fChoose literal = List.choose (fChoose literal) cnf
 
-let resolvePure cnfData literal =
-    List.choose
-        (fun clause ->
-            if Seq.exists ((=) literal) clause then
-                None
-            else
-                Some clause)
-        cnfData
+let propagate (cnf, model) =
+    let rec inner cnf model =
+        match tryFindUnitLiteral cnf with
+        | Some literal -> inner (resolve cnf chooseUnit literal) (literal :: model)
+        | None -> cnf, model
 
-let purify cnfData model =
-    let rec inner cnfData model =
-        match tryFindPureLiteral cnfData with
-        | Some pureLiteral ->
-            let cnfData' = resolvePure cnfData pureLiteral
-            inner cnfData' (pureLiteral :: model)
-        | None -> cnfData, model
+    inner cnf model
 
-    inner cnfData model
+let purify (cnf, model) =
+    let rec inner cnf model =
+        match tryFindPureLiteral cnf with
+        | Some literal -> inner (resolve cnf choosePure literal) (literal :: model)
+        | None -> cnf, model
+
+    inner cnf model
 
 let evaluate model cnfVariables =
     match model with
     | Some res ->
-        let folder =
-            fun (state: array<_>) elem ->
-                match elem with
-                | Positive n -> state[n - 1] <- n
-                | Negative n -> state[n - 1] <- -n
+        Some(
+            List.fold
+                (fun (state: array<_>) elem ->
+                    match elem with
+                    | Positive n -> state[n - 1] <- n
+                    | Negative n -> state[n - 1] <- -n
 
-                state
-
-        let ans = [| 1..cnfVariables |]
-        List.fold folder ans res |> Some
+                    state)
+                [| 1..cnfVariables |]
+                res
+        )
     | None -> None
 
-let dpll (cnf: CNF) =
-    let rec inner cnfData model =
-        let cnfData', model' = propagate cnfData model
-        let cnfData'', model'' = purify cnfData' model'
+let solve (cnf: CNF) =
+    let rec inner cnf model =
+        let cnf', model' = (cnf, model) |> propagate |> purify
 
-        match cnfData'' with
-        | [] -> Some model''
-        | [] :: tl -> None
-        | (nextLiteral :: tl1) :: tl2 as f ->
-            if List.exists List.isEmpty f then
+        match cnf' with
+        | [] -> Some model'
+        | [] :: _ -> None
+        | (nextLiteral :: _) :: _ as cnf ->
+            if List.exists List.isEmpty cnf then
                 None
             else
-                let cnfData''' = resolveUnit cnfData'' nextLiteral
-                let maybeModel = inner cnfData''' (nextLiteral :: model'')
+                let maybeModel = inner (resolve cnf chooseUnit nextLiteral) (nextLiteral :: model')
 
                 match maybeModel with
                 | Some ans -> Some ans
-                | None ->
-                    let cnfData'''' = resolveUnit cnfData'' -nextLiteral
-                    inner cnfData'''' (-nextLiteral :: model'')
+                | None -> inner (resolve cnf chooseUnit -nextLiteral) (-nextLiteral :: model')
 
     let model = inner cnf.Data List.empty
     evaluate model cnf.Variables

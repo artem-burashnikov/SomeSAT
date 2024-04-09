@@ -6,8 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="DIMACSReader.fs" />
-        <Compile Include="CNF.fs" />
         <Compile Include="Solver.fs" />
         <Compile Include="Printer.fs" />
         <Compile Include="Main.fs" />
