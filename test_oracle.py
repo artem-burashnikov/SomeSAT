@@ -110,5 +110,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python3 test.py <filePath>")
         sys.exit(1)
-    test_with_oracle(sys.argv[1])
+    test_with_oracle(Path(sys.argv[1]))
     sys.exit(0)
